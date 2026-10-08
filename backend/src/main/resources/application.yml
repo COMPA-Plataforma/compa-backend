@@ -7,9 +7,9 @@ spring:
       enabled: false
 
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://ep-blue-smoke-ai796w3o-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require}
-    username: ${DATABASE_USER:neondb_owner}
-    password: ${DATABASE_PASSWORD:npg_iPGNydZQ4BM0}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       keepaliveTime: 30000
@@ -17,8 +17,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
@@ -30,13 +30,13 @@ spring:
       defer-datasource-initialization: true
 
 brevo:
-  api-key: ${BREVO_API_KEY:tu-api-key-aqui}
+  api-key: ${BREVO_API_KEY}
 
 server:
   port: 8080
 
 app:
   jwt:
-    secret: lifetracker-wellness-super-secret-key-2024-minimum-32-chars
-    expiration-ms: 86400000
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
