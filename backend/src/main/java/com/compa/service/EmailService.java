@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-
 import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -73,6 +73,33 @@ public class EmailService {
         send(toEmail, orientadorName, "⚠️ Alerta de riesgo alto — " + estudianteName, body);
     }
 
+    // HU-01: recordatorio de tareas pendientes (lista de tareas + seguimiento)
+    @Async
+    public void sendTaskReminderEmail(String toEmail, String name, List<String> pendingTaskNames,
+                                      boolean isFollowUp) {
+        StringBuilder taskList = new StringBuilder();
+        for (String taskName : pendingTaskNames) {
+            taskList.append("- ").append(taskName).append("\n");
+        }
+
+        String subject = isFollowUp
+                ? "Recordatorio: aún tienes tareas pendientes en COMPA"
+                : "Tienes tareas pendientes hoy en COMPA";
+
+        String intro = isFollowUp
+                ? "Vimos que todavía no has marcado algunas tareas de hoy:\n\n"
+                : "Este es tu recordatorio de tareas pendientes por hoy:\n\n";
+
+        String body = "Hola " + name + ",\n\n" +
+                intro +
+                taskList +
+                "\nPuedes registrarlas desde tu cuenta en COMPA.\n\n" +
+                "Equipo COMPA";
+
+        send(toEmail, name, subject, body);
+    }
+
+    // HU-03: recordatorio con enlace para marcar la tarea como cumplida desde el correo
     @Async
     public void sendTaskReminderEmail(String toEmail, String name, String title,
                                       String message, String actionToken) {
