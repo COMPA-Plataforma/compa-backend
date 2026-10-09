@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/notifications/actions/*/complete-task").permitAll()
                         .requestMatchers("/api/estudiantes/*/atencion/**", "/api/atenciones/**")
                         .hasRole("ORIENTADOR")
+                        .requestMatchers("/api/estudiantes/*/habit-plans/**")
+                        .hasRole("ORIENTADOR")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

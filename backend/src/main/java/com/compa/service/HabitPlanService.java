@@ -13,6 +13,8 @@ import com.compa.repository.HabitPlanRepository;
 import com.compa.repository.HabitTaskRepository;
 import com.compa.repository.EstudianteRepository;
 import org.springframework.stereotype.Service;
+import com.compa.dto.response.PlanEstudianteResponse;
+import java.util.Comparator;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -85,6 +87,37 @@ public class HabitPlanService {
         estudianteRepository.findById(estudianteId).orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
         return habitPlanRepository.findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
                 .orElseThrow(() -> new ResourceNotFoundException("El estudiante no tiene un plan activo"));
+    }
+
+        @Transactional(readOnly = true)
+    public PlanEstudianteResponse getPlanActivoParaEstudiante(Long estudianteId) {
+        HabitPlan plan = habitPlanRepository.findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Aun no tienes un plan de acompanamiento activo"));
+
+        List<PlanEstudianteResponse.Actividad> actividades = plan.getTasks().stream()
+                .sorted(Comparator.comparing(HabitTask::getCreatedAt).thenComparing(HabitTask::getId))
+                .map(t -> PlanEstudianteResponse.Actividad.builder()
+                        .id(t.getId())
+                        .name(t.getName())
+                        .description(t.getDescription())
+                        .priority(t.getPriority())
+                        .mandatory(t.isMandatory())
+                        .weeklyGoal(t.getWeeklyGoal())
+                        .specificDays(new ArrayList<>(t.getSpecificDays()))
+                        .createdAt(t.getCreatedAt())
+                        .build())
+                .toList();
+
+        return PlanEstudianteResponse.builder()
+                .id(plan.getId())
+                .name(plan.getName())
+                .description(plan.getDescription())
+                .startDate(plan.getStartDate())
+                .endDate(plan.getEndDate())
+                .status(plan.getStatus())
+                .createdAt(plan.getCreatedAt())
+                .tasks(actividades)
+                .build();
     }
 
     @Transactional(readOnly = true)

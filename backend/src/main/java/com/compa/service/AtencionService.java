@@ -101,6 +101,7 @@ public class AtencionService {
     public AtencionResponse consultar(Long estudianteId, String orientadorEmail) {
         Orientador orientador = orientadorActual(orientadorEmail);
         Estudiante estudiante = estudiante(estudianteId);
+        sinAtencionSiNoTieneOrientador(estudiante);
         verificarAcceso(estudiante, orientador);
 
         Atencion atencion = atencionRepository.findByEstudianteId(estudianteId)
@@ -112,6 +113,7 @@ public class AtencionService {
     public List<AtencionVersionResponse> historial(Long estudianteId, String orientadorEmail) {
         Orientador orientador = orientadorActual(orientadorEmail);
         Estudiante estudiante = estudiante(estudianteId);
+        sinAtencionSiNoTieneOrientador(estudiante);
         verificarAcceso(estudiante, orientador);
 
         Atencion atencion = atencionRepository.findByEstudianteId(estudianteId)
@@ -137,6 +139,14 @@ public class AtencionService {
     private Estudiante estudiante(Long id) {
         return estudianteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estudiante", id));
+    }
+
+    // Un estudiante sin orientador aún no tiene atención (se asigna al registrar la primera):
+    // se responde "no encontrada" y no "prohibido", para que la pantalla ofrezca registrarla.
+    private void sinAtencionSiNoTieneOrientador(Estudiante estudiante) {
+        if (estudiante.getOrientador() == null) {
+            throw new ResourceNotFoundException("El estudiante aun no tiene atencion registrada");
+        }
     }
 
     private void verificarAcceso(Estudiante estudiante, Orientador orientador) {
