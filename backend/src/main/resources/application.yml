@@ -1,6 +1,8 @@
 spring:
   application:
     name: compa-backend
+  config:
+    import: optional:file:.env[.properties]
 
   docker:
     compose:
