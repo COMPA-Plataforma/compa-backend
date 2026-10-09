@@ -19,7 +19,7 @@ import com.compa.dto.response.CheckInDetailResponse;
 import com.compa.dto.response.CheckInSummaryResponse;
 import com.compa.exception.ResourceNotFoundException;
 import com.compa.model.DailyCheckIn;
-import com.compa.model.HabitPlan;
+import com.compa.dto.response.PlanEstudianteResponse;
 import com.compa.model.Estudiante;
 import com.compa.model.EstudianteConsent;
 import com.compa.repository.EstudianteRepository;
@@ -115,10 +115,10 @@ public class EstudianteMeController {
 
     // Plan activo
     @GetMapping("/plan")
-    public ResponseEntity<HabitPlan> getActivePlan(
+    public ResponseEntity<PlanEstudianteResponse> getActivePlan(
             @AuthenticationPrincipal UserDetails userDetails) {
         Estudiante estudiante = getEstudianteFromToken(userDetails);
-        return ResponseEntity.ok(habitPlanService.getActivePlan(estudiante.getId()));
+        return ResponseEntity.ok(habitPlanService.getPlanActivoParaEstudiante(estudiante.getId()));
     }
 
     // Consentimientos
