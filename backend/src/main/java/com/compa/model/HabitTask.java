@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -50,6 +51,15 @@ public class HabitTask {
     @Column(name = "specific_days")
     private List<String> specificDays = new ArrayList<>();
 
+        // Fecha límite de la actividad (opcional). Se usa en lugar de una frecuencia.
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+
+    // Fecha de la sesión en la que se acordó la actividad. Es null en actividades
+    // antiguas; en ese caso se usa la fecha de creación.
+    @Column(name = "agreed_date")
+    private LocalDate agreedDate;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

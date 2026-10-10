@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 // Vista del plan de acompañamiento para el estudiante (solo lectura).
-// No incluye anamnesis, impresión diagnóstica ni ningún dato clínico.
+// Solo expone lo que el estudiante debe ver: no incluye anamnesis, impresión
+// diagnóstica ni ningún dato clínico.
 @Getter
 @Builder
 public class PlanEstudianteResponse {
@@ -19,9 +20,13 @@ public class PlanEstudianteResponse {
     private String name;
     private String description;
     private LocalDate startDate;
-    private LocalDate endDate;          // fecha límite del plan (puede ser null)
+    // Fecha límite del plan; puede ser null si no se definió.
+    private LocalDate endDate;
     private PlanStatus status;
-    private LocalDateTime createdAt;    // fecha en que se acordó el plan
+    // Fecha en que se registró el plan en el sistema.
+    private LocalDateTime createdAt;
+    // Fecha de la sesión en que se acordó el plan.
+    private LocalDate agreedDate;
     private List<Actividad> tasks;
 
     @Getter
@@ -32,8 +37,14 @@ public class PlanEstudianteResponse {
         private String description;
         private TaskPriority priority;
         private boolean mandatory;
-        private Integer weeklyGoal;           // veces por semana (puede ser null)
-        private List<String> specificDays;    // días específicos (puede estar vacía)
-        private LocalDateTime createdAt;      // fecha en que se acordó la actividad
+        // Frecuencia: veces por semana y/o días específicos (ambas pueden ser null/vacías).
+        private Integer weeklyGoal;
+        private List<String> specificDays;
+        // Fecha límite de la actividad; puede ser null.
+        private LocalDate dueDate;
+        // Fecha de la sesión en que se acordó la actividad.
+        private LocalDate agreedDate;
+        // Fecha en que se registró la actividad en el sistema.
+        private LocalDateTime createdAt;
     }
 }

@@ -1,5 +1,6 @@
 package com.compa.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -15,5 +16,10 @@ public class HabitPlanRequest {
     @NotNull(message = "La fecha de inicio es obligatoria")
     private LocalDate startDate;
     private LocalDate endDate;
+    // Fecha de la sesión en la que se acordó el plan. Si no se envía se toma la fecha de hoy.
+    private LocalDate sessionDate;
+    // Actividades acordadas en la sesión. Al crear el plan debe haber al menos una
+    // (se valida en el servicio, para no afectar la edición del plan).
+    @Valid
     private List<HabitTaskRequest> tasks = new ArrayList<>();
 }
