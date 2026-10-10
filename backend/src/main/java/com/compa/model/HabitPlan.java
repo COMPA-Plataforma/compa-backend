@@ -37,6 +37,9 @@ public class HabitPlan {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+    
+    @Column(name = "agreed_date")
+    private LocalDate agreedDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
