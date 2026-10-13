@@ -1,4 +1,5 @@
 package com.compa.model;
+
 import com.compa.enums.MotivoConsulta;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,6 +10,10 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Atención (anamnesis) de un estudiante. La anamnesis se compone de varios campos de texto libre. Hay una sola por estudiante y no se
+ * elimina; cada cambio queda como una AtencionVersion.
+ */
 @Entity
 @Table(name = "atenciones")
 @Getter
@@ -24,8 +29,26 @@ public class Atencion {
     @JoinColumn(name = "estudiante_id", nullable = false, unique = true)
     private Estudiante estudiante;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String anamnesis;
+    // Entrevista de recepcion. Sigue guardandose en la columna "anamnesis" que ya existia,
+    // asi las atenciones registradas antes del cambio conservan su texto sin migrar nada.
+    @Column(name = "anamnesis", nullable = false, columnDefinition = "TEXT")
+    private String entrevistaRecepcion;
+
+    @Column(name = "situacion_actual", columnDefinition = "TEXT")
+    private String situacionActual;
+
+    @Column(name = "antecedentes", columnDefinition = "TEXT")
+    private String antecedentes;
+
+    @Column(name = "aspectos_psicosociales", columnDefinition = "TEXT")
+    private String aspectosPsicosociales;
+
+    @Column(name = "relaciones_familiares", columnDefinition = "TEXT")
+    private String relacionesFamiliares;
+
+    @Column(name = "observaciones_salud", columnDefinition = "TEXT")
+    private String observacionesSalud;
+
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "atencion_motivos", joinColumns = @JoinColumn(name = "atencion_id"))
@@ -36,7 +59,7 @@ public class Atencion {
     @Column(name = "motivo_otro", length = 200)
     private String motivoOtro;
 
-    @Column(name = "impresion_diagnostica", length = 300)
+    @Column(name = "impresion_diagnostica", columnDefinition = "TEXT")
     private String impresionDiagnostica;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,5 +78,4 @@ public class Atencion {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-    
 }

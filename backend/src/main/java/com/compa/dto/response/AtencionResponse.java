@@ -13,7 +13,12 @@ public class AtencionResponse {
     private Long estudianteId;
     private Long orientadorId;
     private String orientadorNombre;
-    private String anamnesis;
+    private String entrevistaRecepcion;
+    private String situacionActual;
+    private String antecedentes;
+    private String aspectosPsicosociales;
+    private String relacionesFamiliares;
+    private String observacionesSalud;
     private List<MotivoItem> motivos;
     private String motivoOtro;
     private String impresionDiagnostica;
