@@ -54,8 +54,8 @@ public class AtencionService {
         if (atencionRepository.existsByEstudianteId(estudianteId)) {
             throw new BusinessException("El estudiante ya tiene una atencion registrada. Actualicela en su lugar.");
         }
-        if (request.getAnamnesis() == null || request.getAnamnesis().isBlank()) {
-            throw new BusinessException("La anamnesis es obligatoria al registrar la atencion.");
+        if (request.getEntrevistaRecepcion() == null || request.getEntrevistaRecepcion().isBlank()) {
+            throw new BusinessException("La entrevista de recepcion es obligatoria al registrar la atencion.");
         }
 
         Atencion atencion = new Atencion();
@@ -77,18 +77,11 @@ public class AtencionService {
         Atencion atencion = atencionRepository.findByEstudianteId(estudianteId)
                 .orElseThrow(() -> new ResourceNotFoundException("El estudiante aun no tiene atencion registrada"));
 
-        String anamnesisAntes = atencion.getAnamnesis();
-        Set<MotivoConsulta> motivosAntes = Set.copyOf(atencion.getMotivos());
-        String otroAntes = atencion.getMotivoOtro();
-        String impresionAntes = atencion.getImpresionDiagnostica();
+        List<Object> antes = valores(atencion);
 
         aplicar(atencion, request);
 
-        boolean cambio = !Objects.equals(anamnesisAntes, atencion.getAnamnesis())
-                || !motivosAntes.equals(Set.copyOf(atencion.getMotivos()))
-                || !Objects.equals(otroAntes, atencion.getMotivoOtro())
-                || !Objects.equals(impresionAntes, atencion.getImpresionDiagnostica());
-        if (!cambio) {
+        if (antes.equals(valores(atencion))) {
             throw new BusinessException("No hay cambios para guardar.");
         }
 
@@ -158,11 +151,11 @@ public class AtencionService {
 
     // Aplica solo los campos enviados (null = sin cambio, vacío = borrar).
     private void aplicar(Atencion atencion, AtencionRequest r) {
-        if (r.getAnamnesis() != null) {
-            if (r.getAnamnesis().isBlank()) {
-                throw new BusinessException("La anamnesis no puede quedar vacia.");
+        if (r.getEntrevistaRecepcion() != null) {
+            if (r.getEntrevistaRecepcion().isBlank()) {
+                throw new BusinessException("La entrevista de recepcion no puede quedar vacia.");
             }
-            atencion.setAnamnesis(r.getAnamnesis().trim());
+            atencion.setEntrevistaRecepcion(r.getEntrevistaRecepcion().trim());
         }
         if (r.getMotivos() != null) {
             atencion.getMotivos().clear();
@@ -171,10 +164,26 @@ public class AtencionService {
         if (r.getMotivoOtro() != null) {
             atencion.setMotivoOtro(r.getMotivoOtro().isBlank() ? null : r.getMotivoOtro().trim());
         }
-        if (r.getImpresionDiagnostica() != null) {
-            atencion.setImpresionDiagnostica(
-                    r.getImpresionDiagnostica().isBlank() ? null : r.getImpresionDiagnostica().trim());
-        }
+        atencion.setSituacionActual(texto(r.getSituacionActual(), atencion.getSituacionActual()));
+        atencion.setAntecedentes(texto(r.getAntecedentes(), atencion.getAntecedentes()));
+        atencion.setAspectosPsicosociales(texto(r.getAspectosPsicosociales(), atencion.getAspectosPsicosociales()));
+        atencion.setRelacionesFamiliares(texto(r.getRelacionesFamiliares(), atencion.getRelacionesFamiliares()));
+        atencion.setObservacionesSalud(texto(r.getObservacionesSalud(), atencion.getObservacionesSalud()));
+        atencion.setImpresionDiagnostica(texto(r.getImpresionDiagnostica(), atencion.getImpresionDiagnostica()));
+    }
+
+    // Campo de texto libre: null = sin cambio, vacío = borrar, otro = texto recortado.
+    private String texto(String nuevo, String actual) {
+        if (nuevo == null) return actual;
+        return nuevo.isBlank() ? null : nuevo.trim();
+    }
+
+    // Valores de la atención, para saber si una actualización realmente cambió algo.
+    private List<Object> valores(Atencion a) {
+        return java.util.Arrays.asList(
+                a.getEntrevistaRecepcion(), Set.copyOf(a.getMotivos()), a.getMotivoOtro(),
+                a.getSituacionActual(), a.getAntecedentes(), a.getAspectosPsicosociales(),
+                a.getRelacionesFamiliares(), a.getObservacionesSalud(), a.getImpresionDiagnostica());
     }
 
     private AtencionVersion guardarVersion(Atencion atencion, Orientador autor) {
@@ -182,7 +191,12 @@ public class AtencionService {
         v.setAtencion(atencion);
         v.setNumero(versionRepository.countByAtencionId(atencion.getId()) + 1);
         v.setAutor(autor);
-        v.setAnamnesis(atencion.getAnamnesis());
+        v.setEntrevistaRecepcion(atencion.getEntrevistaRecepcion());
+        v.setSituacionActual(atencion.getSituacionActual());
+        v.setAntecedentes(atencion.getAntecedentes());
+        v.setAspectosPsicosociales(atencion.getAspectosPsicosociales());
+        v.setRelacionesFamiliares(atencion.getRelacionesFamiliares());
+        v.setObservacionesSalud(atencion.getObservacionesSalud());
         v.setMotivos(atencion.getMotivos().stream()
                 .sorted(Comparator.comparingInt(Enum::ordinal))
                 .map(Enum::name)
@@ -205,7 +219,12 @@ public class AtencionService {
                 .estudianteId(a.getEstudiante().getId())
                 .orientadorId(o != null ? o.getId() : null)
                 .orientadorNombre(o != null ? o.getName() + " " + o.getLastName() : null)
-                .anamnesis(a.getAnamnesis())
+                .entrevistaRecepcion(a.getEntrevistaRecepcion())
+                .situacionActual(a.getSituacionActual())
+                .antecedentes(a.getAntecedentes())
+                .aspectosPsicosociales(a.getAspectosPsicosociales())
+                .relacionesFamiliares(a.getRelacionesFamiliares())
+                .observacionesSalud(a.getObservacionesSalud())
                 .motivos(items(a.getMotivos()))
                 .motivoOtro(a.getMotivoOtro())
                 .impresionDiagnostica(a.getImpresionDiagnostica())
@@ -225,7 +244,12 @@ public class AtencionService {
                 .fecha(v.getFecha())
                 .autorId(v.getAutor().getId())
                 .autorNombre(v.getAutor().getName() + " " + v.getAutor().getLastName())
-                .anamnesis(v.getAnamnesis())
+                .entrevistaRecepcion(v.getEntrevistaRecepcion())
+                .situacionActual(v.getSituacionActual())
+                .antecedentes(v.getAntecedentes())
+                .aspectosPsicosociales(v.getAspectosPsicosociales())
+                .relacionesFamiliares(v.getRelacionesFamiliares())
+                .observacionesSalud(v.getObservacionesSalud())
                 .motivos(items(motivos))
                 .motivoOtro(v.getMotivoOtro())
                 .impresionDiagnostica(v.getImpresionDiagnostica())
