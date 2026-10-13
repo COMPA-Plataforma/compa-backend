@@ -34,6 +34,9 @@ public class TaskCheckIn {
     @Column(name = "barrier")
     private TaskBarrier barrier;
 
+    @Column(name = "comment_text", length = 500)
+    private String comment;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

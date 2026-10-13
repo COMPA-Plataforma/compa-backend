@@ -66,6 +66,9 @@ public class DailyCheckInService {
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
+        validateTasksBelongToActivePlan(estudianteId, request.getTasks());   // <-- NUEVA
+
+
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         DailyCheckIn checkIn = checkInRepository
@@ -102,6 +105,7 @@ public class DailyCheckInService {
                 taskCheckIn.setCheckIn(checkIn);
                 taskCheckIn.setTask(task);
                 taskCheckIn.setCompleted(taskRequest.isCompleted());
+                taskCheckIn.setComment(normalizeComment(taskRequest.getComment()));
                 taskCheckIn.setBarrier(taskRequest.getBarrier());
                 taskCheckInRepository.save(taskCheckIn);
             }
@@ -116,6 +120,9 @@ public class DailyCheckInService {
 
     @Transactional
     public DailyCheckIn updateCheckIn(Long estudianteId, DailyCheckInRequest request) {
+
+        validateTasksBelongToActivePlan(estudianteId, request.getTasks());   // <-- NUEVA
+
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         DailyCheckIn checkIn = checkInRepository
@@ -143,6 +150,7 @@ public class DailyCheckInService {
                 taskCheckIn.setTask(task);
                 taskCheckIn.setCompleted(taskRequest.isCompleted());
                 taskCheckIn.setBarrier(taskRequest.getBarrier());
+                taskCheckIn.setComment(normalizeComment(taskRequest.getComment()));
                 taskCheckInRepository.save(taskCheckIn);
             }
         }
@@ -311,6 +319,7 @@ public class DailyCheckInService {
                         .completed(t.isCompleted())
                         .barrier(t.getBarrier())
                         .barrierLabel(t.getBarrier() != null ? t.getBarrier().getDisplayName() : null)
+                        .comment(t.getComment())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
 
@@ -326,4 +335,34 @@ public class DailyCheckInService {
                 .tasks(taskDetails)
                 .build();
     }
+    private String normalizeComment(String comment) {
+        if (comment == null) return null;
+        String trimmed = comment.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void validateTasksBelongToActivePlan(Long estudianteId, List<TaskCheckInRequest> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return;
+        }
+
+        HabitPlan activePlan = habitPlanRepository
+                .findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
+                .orElseThrow(() -> new BusinessException(
+                        "No tienes un plan de acompañamiento activo. "
+                                + "Tu psicoorientador debe crearlo para que puedas informar tu cumplimiento."));
+
+        java.util.Set<Long> planTaskIds = habitTaskRepository.findByHabitPlanId(activePlan.getId())
+                .stream()
+                .map(HabitTask::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        for (TaskCheckInRequest taskRequest : tasks) {
+            if (!planTaskIds.contains(taskRequest.getTaskId())) {
+                throw new BusinessException("Una de las actividades no pertenece a tu plan activo.");
+            }
+        }
+    }
+
+
 }

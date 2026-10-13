@@ -24,6 +24,7 @@ public class CheckInDetailResponse {
         private boolean completed;
         private TaskBarrier barrier;
         private String barrierLabel;
+        private String comment;
 
         public static Builder builder() { return new Builder(); }
 
@@ -35,6 +36,7 @@ public class CheckInDetailResponse {
             public Builder completed(boolean v) { obj.completed = v; return this; }
             public Builder barrier(TaskBarrier v) { obj.barrier = v; return this; }
             public Builder barrierLabel(String v) { obj.barrierLabel = v; return this; }
+            public Builder comment(String v) { obj.comment = v; return this; }
             public TaskDetailResponse build() { return obj; }
         }
 
@@ -44,6 +46,7 @@ public class CheckInDetailResponse {
         public boolean isCompleted() { return completed; }
         public TaskBarrier getBarrier() { return barrier; }
         public String getBarrierLabel() { return barrierLabel; }
+        public String getComment() { return comment; }
     }
 
     public static Builder builder() { return new Builder(); }
