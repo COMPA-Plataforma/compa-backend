@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Sin esto, cualquier error interno (500) se convierte en un 403 vacio y el front cierra sesion
+                        .requestMatchers("/error").permitAll()
                         // El estudiante activa su cuenta desde el link del email sin estar autenticado
                         .requestMatchers(HttpMethod.POST, "/api/estudiantes/activate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/notifications/actions/*/complete-task").permitAll()
@@ -37,6 +39,9 @@ public class SecurityConfig {
                         .hasRole("ORIENTADOR")
                         // Los seguimientos de sesion tambien son solo del psicoorientador
                         .requestMatchers("/api/estudiantes/*/seguimientos/**")
+                        .hasRole("ORIENTADOR")
+                        // Derivar desde una alerta es solo del psicoorientador
+                        .requestMatchers("/api/alerts/*/derivacion/**")
                         .hasRole("ORIENTADOR")
                         // Crear/editar/consultar planes por id de estudiante es del psicoorientador;
                         // el estudiante solo lee su propio plan en /api/estudiantes/me/plan
