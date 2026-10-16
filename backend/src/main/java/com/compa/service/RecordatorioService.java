@@ -39,7 +39,7 @@ public class RecordatorioService {
     public void enviarRecordatoriosPendientes() {
         LocalDateTime now = LocalDateTime.now(ZONA_BOGOTA);
         LocalTime windowStart = now.toLocalTime().withSecond(0).withNano(0);
-        LocalTime windowEnd = windowStart.plusMinutes(15);
+        LocalTime windowEnd = windowStart.plusMinutes(15).minusSeconds(1);
         LocalDate today = now.toLocalDate();
 
         List<Estudiante> estudiantes = estudianteRepository
