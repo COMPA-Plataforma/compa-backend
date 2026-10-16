@@ -1,16 +1,8 @@
 package com.compa.service;
 
-import com.compa.model.Estudiante;
-import com.compa.model.HabitPlan;
-import com.compa.model.HabitTask;
-import com.compa.model.RecordatorioTarea;
-import com.compa.repository.DailyCheckInRepository;
-import com.compa.repository.EstudianteRepository;
-import com.compa.repository.HabitPlanRepository;
-import com.compa.repository.HabitTaskRepository;
-import com.compa.repository.RecordatorioTareaRepository;
-import com.compa.repository.TaskCheckInRepository;
 import com.compa.enums.EstudianteStatus;
+import com.compa.enums.NotificationChannel;
+import com.compa.enums.NotificationType;
 import com.compa.enums.PlanStatus;
 import com.compa.model.*;
 import com.compa.repository.*;
@@ -39,6 +31,7 @@ public class RecordatorioService {
     private final TaskCheckInRepository taskCheckInRepository;
     private final RecordatorioTareaRepository recordatorioTareaRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     // Corre cada 15 minutos: envía el primer recordatorio a quien le toque en esta
     // ventana
@@ -67,7 +60,22 @@ public class RecordatorioService {
         }
 
         List<String> nombres = pendingTasks.stream().map(HabitTask::getName).collect(Collectors.toList());
+
+        // 1) Correo con la lista de actividades pendientes
         emailService.sendTaskReminderEmail(estudiante.getEmail(), estudiante.getName(), nombres, false);
+
+        // 2) Notificación en la campana (solo en la app, el correo ya salió arriba)
+        try {
+            notificationService.createAndSend(
+                    estudiante.getId(),
+                    NotificationType.RECORDATORIO_CHECKIN,
+                    NotificationChannel.IN_APP,
+                    "Tienes actividades pendientes",
+                    "Hoy te falta informar: " + String.join(", ", nombres) + ".");
+        } catch (Exception e) {
+            log.error("No se pudo crear la notificación del recordatorio para {}: {}",
+                    estudiante.getEmail(), e.getMessage());
+        }
 
         for (HabitTask task : pendingTasks) {
             if (recordatorioTareaRepository.findByHabitTaskIdAndFecha(task.getId(), today).isEmpty()) {
