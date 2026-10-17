@@ -3,7 +3,6 @@ package com.compa.controller;
 import com.compa.model.EstudianteConsent;
 import com.compa.service.ConsentService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,31 +10,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/estudiantes/{estudianteId}/consents")
 @CrossOrigin(origins = "*")
-public class ConsentController
-{
+public class ConsentController {
+
     private final ConsentService consentService;
+
     public ConsentController(ConsentService consentService) {
         this.consentService = consentService;
     }
 
     @GetMapping
-    public ResponseEntity<List>getConsentsByEstudianteId(@PathVariable Long estudianteId)
-    {        List<EstudianteConsent> consents = consentService.getConsentsByEstudiante(estudianteId);
-        return ResponseEntity.ok(consents);
+    public ResponseEntity<List<EstudianteConsent>> getConsentsByEstudianteId(@PathVariable Long estudianteId) {
+        return ResponseEntity.ok(consentService.getConsentsByEstudiante(estudianteId));
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<Boolean>getPendingConsentsByEstudianteId(@PathVariable Long estudianteId)
-    {
+    public ResponseEntity<Boolean> getPendingConsentsByEstudianteId(@PathVariable Long estudianteId) {
         return ResponseEntity.ok(consentService.hasPendingConsents(estudianteId));
     }
 
-    @PatchMapping("/{consentId}/accept")
-    public ResponseEntity<EstudianteConsent> acceptConsent(@PathVariable Long consentId)
-    {
-        return ResponseEntity.ok(consentService.acceptConsent(consentId));
-
-    }
-
-
+    // Aceptar un consentimiento es un acto personal del estudiante:
+    // solo se hace desde PATCH /api/estudiantes/me/consents/{consentId}/accept
 }

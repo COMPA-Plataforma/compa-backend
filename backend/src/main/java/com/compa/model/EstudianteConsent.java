@@ -7,14 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "estudiante_consent")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+public class EstudianteConsent {
 
-public class EstudianteConsent
-{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,4 +34,8 @@ public class EstudianteConsent
     @Column(name = "fecha_aceptacion")
     private LocalDateTime fechaAceptacion;
 
+    // Versión del texto que el estudiante aceptó (constancia).
+    // Si la plantilla cambia de versión y no coincide, debe aceptar de nuevo.
+    @Column(name = "version_aceptada", length = 20)
+    private String versionAceptada;
 }

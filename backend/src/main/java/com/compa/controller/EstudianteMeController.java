@@ -129,13 +129,21 @@ public class EstudianteMeController {
         return ResponseEntity.ok(consentService.getConsentsByEstudiante(estudiante.getId()));
     }
 
-    // Aceptar consentimiento
+    // ¿Tiene consentimientos pendientes? (el frontend bloquea la plataforma si es true)
+    @GetMapping("/consents/pending")
+    public ResponseEntity<Boolean> hasPendingConsents(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Estudiante estudiante = getEstudianteFromToken(userDetails);
+        return ResponseEntity.ok(consentService.hasPendingConsents(estudiante.getId()));
+    }
+
+    // Aceptar consentimiento (solo uno propio: el id sale del token)
     @PatchMapping("/consents/{consentId}/accept")
     public ResponseEntity<EstudianteConsent> acceptConsent(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long consentId) {
-        getEstudianteFromToken(userDetails); // verifica que es el estudiante correcto
-        return ResponseEntity.ok(consentService.acceptConsent(consentId));
+        Estudiante estudiante = getEstudianteFromToken(userDetails);
+        return ResponseEntity.ok(consentService.acceptConsent(estudiante.getId(), consentId));
     }
 
     // Helper — extrae el estudiante del token
