@@ -1,5 +1,6 @@
 package com.compa.controller;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,12 +12,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.compa.dto.request.DailyCheckInRequest;
 import com.compa.dto.response.CheckInDetailResponse;
 import com.compa.dto.response.CheckInSummaryResponse;
+import com.compa.dto.response.ProgresoPlanResponse;
 import com.compa.exception.ResourceNotFoundException;
 import com.compa.model.DailyCheckIn;
 import com.compa.dto.response.PlanEstudianteResponse;
@@ -26,10 +29,12 @@ import com.compa.repository.EstudianteRepository;
 import com.compa.service.ConsentService;
 import com.compa.service.DailyCheckInService;
 import com.compa.service.HabitPlanService;
+import com.compa.service.ProgresoEstudianteService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +48,7 @@ public class EstudianteMeController {
     private final DailyCheckInService checkInService;
     private final HabitPlanService habitPlanService;
     private final ConsentService consentService;
+    private final ProgresoEstudianteService progresoService;
 
     // Obtener datos propios del estudiante autenticado
     @GetMapping
@@ -105,7 +111,7 @@ public class EstudianteMeController {
         return ResponseEntity.ok(Map.of("streak", streak, "message", message));
     }
 
-    // Tareas del día
+    // Actividades del día
     @GetMapping("/check-in/today-tasks")
     public ResponseEntity<?> getTodayTasks(
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -119,6 +125,16 @@ public class EstudianteMeController {
             @AuthenticationPrincipal UserDetails userDetails) {
         Estudiante estudiante = getEstudianteFromToken(userDetails);
         return ResponseEntity.ok(habitPlanService.getPlanActivoParaEstudiante(estudiante.getId()));
+    }
+
+    // Progreso en el plan de acompañamiento (opcionalmente filtrado por rango de fechas)
+    @GetMapping("/progress")
+    public ResponseEntity<ProgresoPlanResponse> getProgress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        Estudiante estudiante = getEstudianteFromToken(userDetails);
+        return ResponseEntity.ok(progresoService.getProgreso(estudiante.getId(), from, to));
     }
 
     // Consentimientos
