@@ -34,6 +34,9 @@ public class SecurityConfig {
                         // El estudiante activa su cuenta desde el link del email sin estar autenticado
                         .requestMatchers(HttpMethod.POST, "/api/estudiantes/activate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/notifications/actions/*/complete-task").permitAll()
+                        // La gestión de usuarios y roles es solo del administrador
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMINISTRADOR")
                         // La atención (anamnesis) es solo para psicoorientadores; el estudiante no accede
                         .requestMatchers("/api/estudiantes/*/atencion/**", "/api/atenciones/**")
                         .hasRole("ORIENTADOR")

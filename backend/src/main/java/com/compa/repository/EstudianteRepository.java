@@ -18,6 +18,8 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
     // Verificar si ya existe un estudiante con ese email
     boolean existsByEmail(String email);
 
+    boolean existsByEmailIgnoreCase(String email);
+
     Optional<Estudiante> findByIdentityDocument(String identityDocument);
 
     // Buscar estudiante por token de activación
@@ -36,6 +38,9 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
     List<Estudiante> findByReminderTimeBetweenAndStatus(LocalTime start, LocalTime end, EstudianteStatus status);
 
     Optional<Estudiante> findByEmail(String email);
+
+    // ¿Este estudiante está asignado a ese psicoorientador?
+    boolean existsByIdAndOrientador_Id(Long id, Long orientadorId);
 
     // Filtrar por condición médica
     @Query("SELECT p FROM Estudiante p JOIN p.clinicalInfo c WHERE LOWER(c.mainCondition) LIKE LOWER(concat('%', :condition, '%'))")

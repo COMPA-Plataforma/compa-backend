@@ -3,6 +3,7 @@ package com.compa.service;
 import com.compa.dto.request.LoginRequest;
 import com.compa.dto.request.RegisterRequest;
 import com.compa.dto.response.AuthResponse;
+import com.compa.enums.EstudianteStatus;
 import com.compa.enums.OrientadorStatus;
 import com.compa.exception.BusinessException;
 import com.compa.exception.ResourceNotFoundException;
@@ -25,6 +26,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
+    private static final String MSG_CUENTA_DESACTIVADA =
+            "Tu cuenta está desactivada. Comunícate con el administrador.";
+
     private final OrientadorRepository orientadorRepository;
     private final EstudianteRepository estudianteRepository;
     private final PasswordEncoder passwordEncoder;
@@ -84,13 +88,17 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
 
-        // Buscar primero en orientadores
+        // Buscar primero en el personal (orientadores, coordinadores y administradores)
         Optional<Orientador> orientadorOpt = orientadorRepository.findByEmail(request.getEmail());
         if (orientadorOpt.isPresent()) {
             Orientador orientador = orientadorOpt.get();
 
             if (!passwordEncoder.matches(request.getPassword(), orientador.getPassword())) {
                 throw new BusinessException("Credenciales inválidas");
+            }
+
+            if (orientador.getStatus() == OrientadorStatus.INACTIVE) {
+                throw new BusinessException(MSG_CUENTA_DESACTIVADA);
             }
 
             if (orientador.getStatus() == OrientadorStatus.PENDING) {
@@ -118,17 +126,14 @@ public class AuthService {
 
         if (estudiante.getPassword() == null) {
             throw new BusinessException("Esta cuenta no tiene credenciales de acceso configuradas");
-
         }
 
         if (!passwordEncoder.matches(request.getPassword(), estudiante.getPassword())) {
-            log.info(">>> Estudiante encontrado: {}", estudiante.getEmail());
-            log.info(">>> Cuenta activada: {}", estudiante.isAccountActivated());
-            log.info(">>> Password hash: {}", estudiante.getPassword());
-            log.info(">>> Password ingresada: {}", request.getPassword());
-            log.info(">>> Matches: {}", passwordEncoder.matches(request.getPassword(), estudiante.getPassword()));
             throw new BusinessException("Credenciales inválidas");
+        }
 
+        if (estudiante.getStatus() == EstudianteStatus.INACTIVO) {
+            throw new BusinessException(MSG_CUENTA_DESACTIVADA);
         }
 
         if (!estudiante.isAccountActivated()) {

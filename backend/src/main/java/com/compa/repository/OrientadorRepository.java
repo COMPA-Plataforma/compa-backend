@@ -15,4 +15,7 @@ public interface OrientadorRepository extends JpaRepository<Orientador, Long>
 
     boolean existsByEmail(String email);
 
+    boolean existsByEmailIgnoreCase(String email);
+
+
 }

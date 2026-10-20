@@ -3,5 +3,7 @@ package com.compa.enums;
 public enum Role
 {
     ORIENTADOR,
-    ESTUDIANTE
+    ESTUDIANTE,
+    COORDINADOR_BIENESTAR,
+    ADMINISTRADOR
 }
