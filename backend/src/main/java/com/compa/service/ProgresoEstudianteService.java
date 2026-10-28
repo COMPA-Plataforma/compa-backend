@@ -97,14 +97,15 @@ public class ProgresoEstudianteService {
             int completed = 0;
             int notCompleted = 0;
 
-            // Lo que el psicoorientador validó sobre los reportes de esta actividad
+            // Lo que el psicoorientador validó sobre los reportes de esta actividad.
+            // Las validadas se cuentan por cubeta y nunca superan lo programado, igual que las completadas,
+            // para que el % validado y el % informado sean comparables.
             int validated = 0;
             int notPerformed = 0;
             int toValidate = 0;
             for (TaskCheckIn r : taskReports) {
-                if (r.getEstadoValidacion() == EstadoValidacion.VALIDADA) validated++;
-                else if (r.getEstadoValidacion() == EstadoValidacion.NO_REALIZADA) notPerformed++;
-                else if (r.isCompleted()) toValidate++;
+                if (r.getEstadoValidacion() == EstadoValidacion.NO_REALIZADA) notPerformed++;
+                else if (r.getEstadoValidacion() == null && r.isCompleted()) toValidate++;
             }
 
             for (Cubeta cubeta : buildCubetas(task, periodFrom, periodTo, taskStart, taskEnd)) {
@@ -114,6 +115,12 @@ public class ProgresoEstudianteService {
                 long notDone = taskReports.stream()
                         .filter(r -> !r.isCompleted() && inRange(r.getCheckIn().getCheckInDate(), cubeta))
                         .count();
+
+                long valid = taskReports.stream()
+                        .filter(r -> r.getEstadoValidacion() == EstadoValidacion.VALIDADA
+                                && inRange(r.getCheckIn().getCheckInDate(), cubeta))
+                        .count();
+                validated += (int) Math.min(valid, cubeta.slots());
 
                 int cubetaCompleted = (int) Math.min(done, cubeta.slots());
                 int cubetaNotCompleted = (int) Math.min(notDone, cubeta.slots() - cubetaCompleted);
