@@ -1,16 +1,15 @@
 package com.compa.enums;
 
 public enum MotivoConsulta {
-    ESTRES_ACADEMICO("Estrés académico"),
-    ANSIEDAD("Ansiedad"),
-    ESTADO_DE_ANIMO("Estado de ánimo"),
-    MANEJO_DEL_TIEMPO("Manejo del tiempo"),
-    PROCRASTINACION("Procrastinación"),
-    SUENO("Sueño"),
-    MOTIVACION("Motivación"),
-    ADAPTACION_UNIVERSITARIA("Adaptación a la vida universitaria"),
+    BIENESTAR_EMOCIONAL("Bienestar emocional"),
+    DIFICULTADES_ACADEMICAS("Dificultades académicas"),
     RELACIONES_INTERPERSONALES("Relaciones interpersonales"),
-    ORIENTACION_VOCACIONAL("Orientación vocacional");
+    SITUACIONES_FAMILIARES("Situaciones familiares"),
+    ADAPTACION_PERMANENCIA("Adaptación y permanencia universitaria"),
+    PROYECTO_VIDA_VOCACIONAL("Proyecto de vida y orientación vocacional"),
+    SALUD_MENTAL_SEGUIMIENTO("Salud mental y seguimiento"),
+    VIOLENCIAS_GENERO_SEXUALES("Violencias basadas en género y violencias sexuales"),
+    OTROS_MOTIVOS("Otros motivos de orientación");
 
     private final String displayName;
 
@@ -21,5 +20,4 @@ public enum MotivoConsulta {
     public String getDisplayName() {
         return displayName;
     }
-    
 }

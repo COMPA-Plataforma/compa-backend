@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "guardians")
 @Data
@@ -47,6 +49,11 @@ public class Guardian {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    // Fecha en que el representante legal autorizó el acompañamiento (la registra el psicoorientador).
+    // Es null en los acudientes creados antes de este campo.
+    @Column(name = "fecha_autorizacion")
+    private LocalDate fechaAutorizacion;
 
     @ManyToOne
     @JsonBackReference
