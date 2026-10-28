@@ -139,7 +139,16 @@ public class RiskLevelService {
     // Evaluar todos los estudiantes activos (para ejecutar diariamente)
     @Transactional
     public List<RiskLevelResponse> evaluateAllActiveEstudiantes() {
-        List<Estudiante> activeEstudiantes = estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
+        return evaluar(estudianteRepository.findByStatus(EstudianteStatus.ACTIVO));
+    }
+
+    // Disparo manual del psicoorientador: solo evalua a sus estudiantes
+    @Transactional
+    public List<RiskLevelResponse> evaluateAllActiveEstudiantes(String orientadorEmail) {
+        return evaluar(estudianteRepository.findByStatusAndOrientadorEmail(EstudianteStatus.ACTIVO, orientadorEmail));
+    }
+
+    private List<RiskLevelResponse> evaluar(List<Estudiante> activeEstudiantes) {
         List<RiskLevelResponse> results = new ArrayList<>();
         for (Estudiante estudiante : activeEstudiantes) {
             results.add(evaluateEstudiante(estudiante.getId()));
@@ -149,8 +158,9 @@ public class RiskLevelService {
 
     // Obtener todos los estudiantes activos con su nivel de riesgo actual
     @Transactional(readOnly = true)
-    public List<RiskLevelResponse> getAllEstudiantesRiskLevel() {
-        List<Estudiante> activeEstudiantes = estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
+    public List<RiskLevelResponse> getAllEstudiantesRiskLevel(String orientadorEmail) {
+        List<Estudiante> activeEstudiantes =
+                estudianteRepository.findByStatusAndOrientadorEmail(EstudianteStatus.ACTIVO, orientadorEmail);
         return activeEstudiantes.stream()
                 .map(p -> getCurrentRiskLevel(p.getId()))
                 .collect(Collectors.toList());
