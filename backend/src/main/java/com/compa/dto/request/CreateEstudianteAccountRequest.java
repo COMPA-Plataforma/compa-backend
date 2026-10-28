@@ -1,5 +1,6 @@
 package com.compa.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -25,4 +26,8 @@ public class CreateEstudianteAccountRequest {
     private String documentType = "CEDULA";
 
     private String phoneNumber;
+
+    // Obligatorio cuando el estudiante tiene tarjeta de identidad (menor de edad)
+    @Valid
+    private GuardianRequest acudiente;
 }

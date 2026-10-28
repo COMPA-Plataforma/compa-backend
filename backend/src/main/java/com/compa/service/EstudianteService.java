@@ -31,17 +31,20 @@ public class EstudianteService {
     private final OrientadorRepository orientadorRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GuardianService guardianService;
 
     public EstudianteService(EstudianteRepository estudianteRepository,
             ConsentService consentService,
             OrientadorRepository orientadorRepository,
             PasswordEncoder passwordEncoder,
-            EmailService emailService) {
+            EmailService emailService,
+            GuardianService guardianService) {
         this.estudianteRepository = estudianteRepository;
         this.consentService = consentService;
         this.orientadorRepository = orientadorRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.guardianService = guardianService;
     }
 
     // CRITERIO: El orientador crea una cuenta de estudiante desde su panel
@@ -58,6 +61,14 @@ public class EstudianteService {
         // Validar documento único
         if (estudianteRepository.existsByIdentityDocument(request.getIdentityDocument())) {
             throw new BusinessException("Ese documento ya está registrado");
+        }
+
+        // Los estudiantes con tarjeta de identidad son menores de edad: se exige el acudiente
+        boolean esMenor = DocumentType.TARJETA_DE_IDENTIDAD.name().equals(request.getDocumentType());
+        if (esMenor && request.getAcudiente() == null) {
+            throw new BusinessException(
+                    "Los estudiantes con tarjeta de identidad son menores de edad: "
+                            + "debes registrar los datos del acudiente y la fecha de su autorizacion");
         }
 
         // Generar contraseña temporal y token de activación
@@ -82,6 +93,11 @@ public class EstudianteService {
 
         estudiante = estudianteRepository.save(estudiante);
         consentService.generateConsentsForEstudiante(estudiante);
+
+        // Guardar el acudiente y la fecha en que autorizo (solo aplica a menores)
+        if (esMenor) {
+            guardianService.saveGuardian(estudiante.getId(), request.getAcudiente());
+        }
 
         // Enviar email con credenciales al estudiante
         try {

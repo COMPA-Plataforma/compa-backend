@@ -43,6 +43,7 @@ public class GuardianService {
         guardian.setRelationship(request.getRelationship());
         guardian.setEmail(request.getEmail());
         guardian.setPhoneNumber(request.getPhoneNumber());
+        guardian.setFechaAutorizacion(request.getFechaAutorizacion());
         guardian.setEstudiante(estudiante);
 
         Guardian saved = guardianRepository.save(guardian);
@@ -79,7 +80,9 @@ public class GuardianService {
                 g.getRelationship(),
                 g.getEmail(),
                 g.getPhoneNumber(),
-                g.getEstudiante().getId());
+                g.getEstudiante().getId(),
+                g.getFechaAutorizacion()
+        );
     }
 
 }
