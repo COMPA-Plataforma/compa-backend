@@ -1,42 +1,46 @@
 package com.compa.dto.response;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Data
+// Progreso del estudiante en su plan de acompañamiento activo (solo lectura).
+@Getter
 @Builder
 public class ProgresoPlanResponse {
 
     private String planName;
     private LocalDate from;
     private LocalDate to;
-
-    // Totales del periodo
-    private int scheduled;      // programadas
-    private int completed;      // informadas como cumplidas
-    private int notCompleted;   // informadas como no cumplidas
-    private int pending;        // programadas sin informar
-
-    // completed / scheduled * 100. Es null si no hay actividades programadas en el periodo
+    private int scheduled;
+    private int completed;
+    private int notCompleted;
+    private int pending;
+    // completadas / programadas * 100. Es null si no hubo actividades programadas en el periodo.
     private Double percentage;
-
-    // false si el estudiante no ha informado ninguna actividad en el periodo
+    // Validación del psicoorientador sobre lo que el estudiante informó
+    private int validated;
+    private int notPerformed;
+    // Informadas como cumplidas que el psicoorientador todavía no ha revisado
+    private int toValidate;
+    // true si el estudiante informó al menos una actividad en el periodo
     private boolean hasReports;
-
     private List<ActividadProgreso> activities;
 
-    @Data
+    @Getter
     @Builder
     public static class ActividadProgreso {
         private Long taskId;
         private String name;
-        private String frequency;   // texto legible: "Lunes y jueves", "3 veces por semana"...
+        private String frequency;
         private int scheduled;
         private int completed;
         private int notCompleted;
         private int pending;
+        private int validated;
+        private int notPerformed;
+        private int toValidate;
     }
 }
