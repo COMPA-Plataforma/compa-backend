@@ -170,6 +170,24 @@ public class AtencionService {
         atencion.setRelacionesFamiliares(texto(r.getRelacionesFamiliares(), atencion.getRelacionesFamiliares()));
         atencion.setObservacionesSalud(texto(r.getObservacionesSalud(), atencion.getObservacionesSalud()));
         atencion.setImpresionDiagnostica(texto(r.getImpresionDiagnostica(), atencion.getImpresionDiagnostica()));
+        aplicarEps(atencion, r);
+    }
+
+    // Afiliación a EPS: si no está afiliado se borra el nombre; si está afiliado, el nombre es obligatorio.
+    private void aplicarEps(Atencion atencion, AtencionRequest r) {
+        if (r.getAfiliadoEps() != null) {
+            atencion.setAfiliadoEps(r.getAfiliadoEps());
+        }
+        if (r.getEpsNombre() != null) {
+            atencion.setEpsNombre(r.getEpsNombre().isBlank() ? null : r.getEpsNombre().trim());
+        }
+        if (Boolean.FALSE.equals(atencion.getAfiliadoEps())) {
+            atencion.setEpsNombre(null);
+        } else if (Boolean.TRUE.equals(atencion.getAfiliadoEps()) && atencion.getEpsNombre() == null) {
+            throw new BusinessException("Indica a cual EPS esta afiliado el estudiante.");
+        } else if (atencion.getAfiliadoEps() == null && atencion.getEpsNombre() != null) {
+            throw new BusinessException("Para indicar la EPS marca que el estudiante esta afiliado.");
+        }
     }
 
     // Campo de texto libre: null = sin cambio, vacío = borrar, otro = texto recortado.
@@ -183,7 +201,8 @@ public class AtencionService {
         return java.util.Arrays.asList(
                 a.getEntrevistaRecepcion(), Set.copyOf(a.getMotivos()), a.getMotivoOtro(),
                 a.getSituacionActual(), a.getAntecedentes(), a.getAspectosPsicosociales(),
-                a.getRelacionesFamiliares(), a.getObservacionesSalud(), a.getImpresionDiagnostica());
+                a.getRelacionesFamiliares(), a.getObservacionesSalud(), a.getImpresionDiagnostica(),
+                a.getAfiliadoEps(), a.getEpsNombre());
     }
 
     private AtencionVersion guardarVersion(Atencion atencion, Orientador autor) {
@@ -197,6 +216,8 @@ public class AtencionService {
         v.setAspectosPsicosociales(atencion.getAspectosPsicosociales());
         v.setRelacionesFamiliares(atencion.getRelacionesFamiliares());
         v.setObservacionesSalud(atencion.getObservacionesSalud());
+        v.setAfiliadoEps(atencion.getAfiliadoEps());
+        v.setEpsNombre(atencion.getEpsNombre());
         v.setMotivos(atencion.getMotivos().stream()
                 .sorted(Comparator.comparingInt(Enum::ordinal))
                 .map(Enum::name)
@@ -225,6 +246,8 @@ public class AtencionService {
                 .aspectosPsicosociales(a.getAspectosPsicosociales())
                 .relacionesFamiliares(a.getRelacionesFamiliares())
                 .observacionesSalud(a.getObservacionesSalud())
+                .afiliadoEps(a.getAfiliadoEps())
+                .epsNombre(a.getEpsNombre())
                 .motivos(items(a.getMotivos()))
                 .motivoOtro(a.getMotivoOtro())
                 .impresionDiagnostica(a.getImpresionDiagnostica())
@@ -250,6 +273,8 @@ public class AtencionService {
                 .aspectosPsicosociales(v.getAspectosPsicosociales())
                 .relacionesFamiliares(v.getRelacionesFamiliares())
                 .observacionesSalud(v.getObservacionesSalud())
+                .afiliadoEps(v.getAfiliadoEps())
+                .epsNombre(v.getEpsNombre())
                 .motivos(items(motivos))
                 .motivoOtro(v.getMotivoOtro())
                 .impresionDiagnostica(v.getImpresionDiagnostica())

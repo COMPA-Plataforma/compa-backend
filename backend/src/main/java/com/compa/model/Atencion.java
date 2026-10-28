@@ -49,6 +49,14 @@ public class Atencion {
     @Column(name = "observaciones_salud", columnDefinition = "TEXT")
     private String observacionesSalud;
 
+    // Afiliación a EPS: null = sin dato, true = afiliado, false = no afiliado
+    @Column(name = "afiliado_eps")
+    private Boolean afiliadoEps;
+
+    // Nombre de la EPS; solo tiene valor cuando afiliadoEps es true
+    @Column(name = "eps_nombre", length = 120)
+    private String epsNombre;
+
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "atencion_motivos", joinColumns = @JoinColumn(name = "atencion_id"))

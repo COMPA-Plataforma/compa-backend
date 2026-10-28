@@ -54,6 +54,14 @@ public class AtencionVersion {
     @Column(name = "observaciones_salud", columnDefinition = "TEXT")
     private String observacionesSalud;
 
+    // Afiliación a EPS: null = sin dato, true = afiliado, false = no afiliado
+    @Column(name = "afiliado_eps")
+    private Boolean afiliadoEps;
+
+    // Nombre de la EPS; solo tiene valor cuando afiliadoEps es true
+    @Column(name = "eps_nombre", length = 120)
+    private String epsNombre;
+
 
     // Códigos de los motivos separados por coma
     @Column(columnDefinition = "TEXT")
