@@ -1,6 +1,7 @@
 package com.compa.service;
 
 import com.compa.dto.response.ProgresoPlanResponse;
+import com.compa.enums.EstadoValidacion;
 import com.compa.enums.PlanStatus;
 import com.compa.exception.BusinessException;
 import com.compa.exception.ResourceNotFoundException;
@@ -73,6 +74,9 @@ public class ProgresoEstudianteService {
         int totalScheduled = 0;
         int totalCompleted = 0;
         int totalNotCompleted = 0;
+        int totalValidated = 0;
+        int totalNotPerformed = 0;
+        int totalToValidate = 0;
         boolean hasReports = false;
         List<ProgresoPlanResponse.ActividadProgreso> activities = new ArrayList<>();
 
@@ -93,6 +97,16 @@ public class ProgresoEstudianteService {
             int completed = 0;
             int notCompleted = 0;
 
+            // Lo que el psicoorientador validó sobre los reportes de esta actividad
+            int validated = 0;
+            int notPerformed = 0;
+            int toValidate = 0;
+            for (TaskCheckIn r : taskReports) {
+                if (r.getEstadoValidacion() == EstadoValidacion.VALIDADA) validated++;
+                else if (r.getEstadoValidacion() == EstadoValidacion.NO_REALIZADA) notPerformed++;
+                else if (r.isCompleted()) toValidate++;
+            }
+
             for (Cubeta cubeta : buildCubetas(task, periodFrom, periodTo, taskStart, taskEnd)) {
                 long done = taskReports.stream()
                         .filter(r -> r.isCompleted() && inRange(r.getCheckIn().getCheckInDate(), cubeta))
@@ -112,6 +126,9 @@ public class ProgresoEstudianteService {
             totalScheduled += scheduled;
             totalCompleted += completed;
             totalNotCompleted += notCompleted;
+            totalValidated += validated;
+            totalNotPerformed += notPerformed;
+            totalToValidate += toValidate;
 
             activities.add(ProgresoPlanResponse.ActividadProgreso.builder()
                     .taskId(task.getId())
@@ -121,6 +138,9 @@ public class ProgresoEstudianteService {
                     .completed(completed)
                     .notCompleted(notCompleted)
                     .pending(scheduled - completed - notCompleted)
+                    .validated(validated)
+                    .notPerformed(notPerformed)
+                    .toValidate(toValidate)
                     .build());
         }
 
@@ -138,6 +158,9 @@ public class ProgresoEstudianteService {
                 .notCompleted(totalNotCompleted)
                 .pending(totalScheduled - totalCompleted - totalNotCompleted)
                 .percentage(percentage)
+                .validated(totalValidated)
+                .notPerformed(totalNotPerformed)
+                .toValidate(totalToValidate)
                 .hasReports(hasReports)
                 .activities(activities)
                 .build();
