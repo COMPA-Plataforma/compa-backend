@@ -33,6 +33,7 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
 
     // Listar estudiantes vinculados a un orientador específico
     List<Estudiante> findByOrientadorId(Long orientadorId);
+    List<Estudiante> findByStatusAndOrientadorEmail(EstudianteStatus status, String orientadorEmail);
 
     // Estudiantes cuya hora de recordatorio cae en la ventana actual
     List<Estudiante> findByReminderTimeBetweenAndStatus(LocalTime start, LocalTime end, EstudianteStatus status);

@@ -3,6 +3,8 @@ package com.compa.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,14 +47,16 @@ public class RiskLevelController {
 
     // Evaluar todos los estudiantes activos (disparo manual o scheduler)
     @PostMapping("/api/risk-level/evaluate-all")
-    public ResponseEntity<List<RiskLevelResponse>> evaluateAllEstudiantes() {
-        return ResponseEntity.ok(riskLevelService.evaluateAllActiveEstudiantes());
+    public ResponseEntity<List<RiskLevelResponse>> evaluateAllEstudiantes(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(riskLevelService.evaluateAllActiveEstudiantes(userDetails.getUsername()));
     }
 
     // Ver nivel de riesgo de todos los estudiantes activos
     @GetMapping("/api/risk-level/all")
-    public ResponseEntity<List<RiskLevelResponse>> getAllEstudiantesRiskLevel() {
-        return ResponseEntity.ok(riskLevelService.getAllEstudiantesRiskLevel());
+    public ResponseEntity<List<RiskLevelResponse>> getAllEstudiantesRiskLevel(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(riskLevelService.getAllEstudiantesRiskLevel(userDetails.getUsername()));
     }
 
 }

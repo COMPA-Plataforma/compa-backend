@@ -142,13 +142,15 @@ public class EstudianteService {
     }
 
     // Método adicional para listar activos (útil para el frontend en React)
-    public List<Estudiante> getAllEstudiantes() {
-        return estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
+    // Solo los estudiantes activos asignados al psicoorientador autenticado
+    public List<Estudiante> getAllEstudiantes(String orientadorEmail) {
+        return estudianteRepository.findByStatusAndOrientadorEmail(EstudianteStatus.ACTIVO, orientadorEmail);
     }
 
     // Listar estudiantes inactivos
-    public List<Estudiante> getInactiveEstudiantes() {
-        return estudianteRepository.findByStatus(EstudianteStatus.INACTIVO);
+    // Solo los estudiantes inactivos asignados al psicoorientador autenticado
+    public List<Estudiante> getInactiveEstudiantes(String orientadorEmail) {
+        return estudianteRepository.findByStatusAndOrientadorEmail(EstudianteStatus.INACTIVO, orientadorEmail);
     }
 
     // Listar estudiantes vinculados a un orientador específico
