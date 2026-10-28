@@ -19,6 +19,8 @@ public class AtencionVersionResponse {
     private String aspectosPsicosociales;
     private String relacionesFamiliares;
     private String observacionesSalud;
+    private Boolean afiliadoEps;
+    private String epsNombre;
     private List<AtencionResponse.MotivoItem> motivos;
     private String motivoOtro;
     private String impresionDiagnostica;

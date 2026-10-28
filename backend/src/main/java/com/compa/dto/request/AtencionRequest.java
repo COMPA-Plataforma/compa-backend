@@ -32,6 +32,13 @@ public class AtencionRequest {
     @Size(max = 5000, message = "El campo observaciones no puede superar los 5000 caracteres")
     private String observacionesSalud;
 
+    // true = afiliado, false = no afiliado, null = sin cambio
+    private Boolean afiliadoEps;
+
+    // Obligatorio cuando afiliadoEps es true; vacío para borrarlo
+    @Size(max = 120, message = "El nombre de la EPS no puede superar los 120 caracteres")
+    private String epsNombre;
+
     private Set<MotivoConsulta> motivos;
 
     @Size(max = 200, message = "El campo Otro no puede superar los 200 caracteres")
