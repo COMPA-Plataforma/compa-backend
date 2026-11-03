@@ -45,6 +45,9 @@ public class SecurityConfig {
                         .hasRole("ORIENTADOR")
                         // Derivar desde una alerta es solo del psicoorientador
                         .requestMatchers("/api/alerts/*/derivacion/**")
+
+                        .hasRole("ORIENTADOR")
+                        .requestMatchers("/api/derivaciones/**")
                         .hasRole("ORIENTADOR")
                         // Crear/editar/consultar planes por id de estudiante es del psicoorientador;
                         // el estudiante solo lee su propio plan en /api/estudiantes/me/plan

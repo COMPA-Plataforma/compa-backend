@@ -13,4 +13,7 @@ public interface DerivacionRepository extends JpaRepository<Derivacion, Long> {
     Optional<Derivacion> findByAlertId(Long alertId);
 
     List<Derivacion> findByEstudianteIdOrderByFechaDescIdDesc(Long estudianteId);
+
+    // Derivaciones de los estudiantes asignados a un psicoorientador
+    List<Derivacion> findByEstudiante_Orientador_IdOrderByFechaDescIdDesc(Long orientadorId);
 }

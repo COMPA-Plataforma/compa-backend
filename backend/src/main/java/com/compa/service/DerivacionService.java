@@ -1,7 +1,9 @@
 package com.compa.service;
 
 import com.compa.dto.request.DerivacionRequest;
+import com.compa.dto.request.NovedadDerivacionRequest;
 import com.compa.dto.response.DerivacionResponse;
+import com.compa.dto.response.NovedadDerivacionResponse;
 import com.compa.enums.AlertStatus;
 import com.compa.enums.DestinoDerivacion;
 import com.compa.enums.EstadoDerivacion;
@@ -11,9 +13,11 @@ import com.compa.exception.ResourceNotFoundException;
 import com.compa.model.Alert;
 import com.compa.model.Derivacion;
 import com.compa.model.Estudiante;
+import com.compa.model.NovedadDerivacion;
 import com.compa.model.Orientador;
 import com.compa.repository.AlertRepository;
 import com.compa.repository.DerivacionRepository;
+import com.compa.repository.NovedadDerivacionRepository;
 import com.compa.repository.OrientadorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,12 +26,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
 public class DerivacionService {
 
+    private static final ZoneId ZONA = ZoneId.of("America/Bogota");
+
     private final DerivacionRepository derivacionRepository;
+    private final NovedadDerivacionRepository novedadRepository;
     private final AlertRepository alertRepository;
     private final OrientadorRepository orientadorRepository;
 
@@ -55,7 +63,7 @@ public class DerivacionService {
             }
         }
 
-        LocalDate hoy = LocalDate.now(ZoneId.of("America/Bogota"));
+        LocalDate hoy = LocalDate.now(ZONA);
         LocalDate fecha = request.getFecha() != null ? request.getFecha() : hoy;
         if (fecha.isAfter(hoy)) {
             throw new BusinessException("La fecha de la derivacion no puede ser futura");
@@ -79,11 +87,69 @@ public class DerivacionService {
         return toResponse(d, alert);
     }
 
-    // Solo el psicoorientador asignado al estudiante puede derivarlo.
+    // Registra una novedad sobre una derivacion existente. El estado de la derivacion pasa a
+    // ser el de la novedad mas reciente. Las novedades no se editan ni se eliminan.
+    @Transactional
+    public NovedadDerivacionResponse registrarNovedad(Long derivacionId, String orientadorEmail,
+                                                      NovedadDerivacionRequest request) {
+        Orientador orientador = orientadorRepository.findByEmail(orientadorEmail)
+                .orElseThrow(() -> new ForbiddenException("Solo un psicoorientador puede registrar novedades."));
+        Derivacion derivacion = derivacionRepository.findById(derivacionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Derivacion", derivacionId));
+
+        verificarAcceso(derivacion.getEstudiante(), orientador);
+
+        String descripcion = request.getDescripcion().trim();
+        if (descripcion.isEmpty()) {
+            throw new BusinessException("La descripcion es obligatoria");
+        }
+
+        LocalDate hoy = LocalDate.now(ZONA);
+        LocalDate fecha = request.getFecha() != null ? request.getFecha() : hoy;
+        if (fecha.isAfter(hoy)) {
+            throw new BusinessException("La fecha de la novedad no puede ser futura");
+        }
+        if (fecha.isBefore(derivacion.getFecha())) {
+            throw new BusinessException("La fecha de la novedad no puede ser anterior a la fecha de la derivacion");
+        }
+
+        NovedadDerivacion novedad = new NovedadDerivacion();
+        novedad.setDerivacion(derivacion);
+        novedad.setOrientador(orientador);
+        novedad.setFecha(fecha);
+        novedad.setDescripcion(descripcion);
+        novedad.setEstado(request.getEstado());
+        novedad = novedadRepository.save(novedad);
+
+        // El estado actual es el de la novedad mas reciente (por fecha y, a igual fecha, la ultima registrada)
+        NovedadDerivacion masReciente = novedadRepository
+                .findFirstByDerivacionIdOrderByFechaDescIdDesc(derivacionId)
+                .orElse(novedad);
+        derivacion.setEstado(masReciente.getEstado());
+        derivacionRepository.save(derivacion);
+
+        long dias = ChronoUnit.DAYS.between(derivacion.getFecha(), hoy);
+
+        return NovedadDerivacionResponse.builder()
+                .id(novedad.getId())
+                .derivacionId(derivacion.getId())
+                .fecha(novedad.getFecha())
+                .descripcion(novedad.getDescripcion())
+                .estado(novedad.getEstado())
+                .estadoEtiqueta(novedad.getEstado().getEtiqueta())
+                .estadoActual(derivacion.getEstado())
+                .diasTranscurridos(dias)
+                .orientadorId(orientador.getId())
+                .orientadorNombre(orientador.getName() + " " + orientador.getLastName())
+                .createdAt(novedad.getCreatedAt())
+                .build();
+    }
+
+    // Solo el psicoorientador asignado al estudiante puede derivarlo o registrar novedades.
     private void verificarAcceso(Estudiante estudiante, Orientador orientador) {
         if (estudiante.getOrientador() == null
                 || !estudiante.getOrientador().getId().equals(orientador.getId())) {
-            throw new ForbiddenException("Solo el psicoorientador asignado puede derivar a este estudiante.");
+            throw new ForbiddenException("Solo el psicoorientador asignado puede gestionar las derivaciones de este estudiante.");
         }
     }
 
