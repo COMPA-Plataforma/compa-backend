@@ -43,9 +43,15 @@ public class SecurityConfig {
                         // Validar el cumplimiento de actividades es solo del psicoorientador
                         .requestMatchers("/api/estudiantes/*/validaciones/**")
                         .hasRole("ORIENTADOR")
+                        // El estudiante ve y sube su propia autorización (debe ir ANTES de la regla de ORIENTADOR,
+                        // porque el * de esa regla también coincide con "me")
+                        .requestMatchers("/api/estudiantes/me/autorizacion-menor/**")
+                        .hasRole("ESTUDIANTE")
+                        // La autorización de menores es solo del psicoorientador
+                        .requestMatchers("/api/estudiantes/*/autorizacion-menor/**", "/api/autorizaciones-menor/**")
+                        .hasRole("ORIENTADOR")
                         // Derivar desde una alerta es solo del psicoorientador
                         .requestMatchers("/api/alerts/*/derivacion/**")
-
                         .hasRole("ORIENTADOR")
                         .requestMatchers("/api/derivaciones/**")
                         .hasRole("ORIENTADOR")

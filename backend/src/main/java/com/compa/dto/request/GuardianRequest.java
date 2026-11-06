@@ -31,7 +31,6 @@ public class GuardianRequest {
 
     private String phoneNumber;
 
-    @NotNull(message = "La fecha de autorizacion del acudiente es obligatoria")
     @PastOrPresent(message = "La fecha de autorizacion no puede ser futura")
     private LocalDate fechaAutorizacion;
 

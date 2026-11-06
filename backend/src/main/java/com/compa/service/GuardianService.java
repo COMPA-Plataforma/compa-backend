@@ -43,7 +43,10 @@ public class GuardianService {
         guardian.setRelationship(request.getRelationship());
         guardian.setEmail(request.getEmail());
         guardian.setPhoneNumber(request.getPhoneNumber());
-        guardian.setFechaAutorizacion(request.getFechaAutorizacion());
+        // La fecha la pone el sistema cuando el orientador aprueba el documento; no se pisa con null
+        if (request.getFechaAutorizacion() != null) {
+            guardian.setFechaAutorizacion(request.getFechaAutorizacion());
+        }
         guardian.setEstudiante(estudiante);
 
         Guardian saved = guardianRepository.save(guardian);

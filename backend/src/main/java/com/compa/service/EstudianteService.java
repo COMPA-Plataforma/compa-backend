@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.compa.service.AutorizacionMenorService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,19 +33,22 @@ public class EstudianteService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final GuardianService guardianService;
+    private final AutorizacionMenorService autorizacionMenorService;
 
     public EstudianteService(EstudianteRepository estudianteRepository,
             ConsentService consentService,
             OrientadorRepository orientadorRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService,
-            GuardianService guardianService) {
+            GuardianService guardianService,
+            AutorizacionMenorService autorizacionMenorService) {
         this.estudianteRepository = estudianteRepository;
         this.consentService = consentService;
         this.orientadorRepository = orientadorRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.guardianService = guardianService;
+        this.autorizacionMenorService = autorizacionMenorService;
     }
 
     // CRITERIO: El orientador crea una cuenta de estudiante desde su panel
@@ -68,7 +72,7 @@ public class EstudianteService {
         if (esMenor && request.getAcudiente() == null) {
             throw new BusinessException(
                     "Los estudiantes con tarjeta de identidad son menores de edad: "
-                            + "debes registrar los datos del acudiente y la fecha de su autorizacion");
+                            + "debes registrar los datos del acudiente ");
         }
 
         // Generar contraseña temporal y token de activación
@@ -97,6 +101,7 @@ public class EstudianteService {
         // Guardar el acudiente y la fecha en que autorizo (solo aplica a menores)
         if (esMenor) {
             guardianService.saveGuardian(estudiante.getId(), request.getAcudiente());
+            autorizacionMenorService.crearPendiente(estudiante);
         }
 
         // Enviar email con credenciales al estudiante
