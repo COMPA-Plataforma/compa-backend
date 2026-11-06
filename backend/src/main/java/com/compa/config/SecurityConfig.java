@@ -59,6 +59,9 @@ public class SecurityConfig {
                         // el estudiante solo lee su propio plan en /api/estudiantes/me/plan
                         .requestMatchers("/api/estudiantes/*/habit-plans/**")
                         .hasRole("ORIENTADOR")
+                        // Estrategias del plan: el psicoorientador ve todas, el estudiante solo las vigentes de su plan activo
+                        .requestMatchers("/api/estudiantes/*/estrategias/**")   
+                        .hasRole("ORIENTADOR")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
