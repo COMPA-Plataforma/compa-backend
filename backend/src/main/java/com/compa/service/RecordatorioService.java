@@ -1,5 +1,15 @@
 package com.compa.service;
 
+import com.compa.model.Estudiante;
+import com.compa.model.HabitPlan;
+import com.compa.model.HabitTask;
+import com.compa.model.RecordatorioTarea;
+import com.compa.repository.DailyCheckInRepository;
+import com.compa.repository.EstudianteRepository;
+import com.compa.repository.HabitPlanRepository;
+import com.compa.repository.HabitTaskRepository;
+import com.compa.repository.RecordatorioTareaRepository;
+import com.compa.repository.TaskCheckInRepository;
 import com.compa.enums.EstudianteStatus;
 import com.compa.enums.NotificationChannel;
 import com.compa.enums.NotificationType;
@@ -39,13 +49,17 @@ public class RecordatorioService {
     public void enviarRecordatoriosPendientes() {
         LocalDateTime now = LocalDateTime.now(ZONA_BOGOTA);
         LocalTime windowStart = now.toLocalTime().withSecond(0).withNano(0);
-        LocalTime windowEnd = windowStart.plusMinutes(15).minusSeconds(1);
+        LocalTime windowEnd = windowStart.plusMinutes(15);
         LocalDate today = now.toLocalDate();
 
         List<Estudiante> estudiantes = estudianteRepository
                 .findByReminderTimeBetweenAndStatus(windowStart, windowEnd, EstudianteStatus.ACTIVO);
 
         for (Estudiante estudiante : estudiantes) {
+            // si configuró días específicos y hoy no toca, se salta
+            if (!ConfiguracionRecordatorioService.tocaHoy(estudiante.getReminderDays(), today)) {
+                continue;
+            }
             habitPlanRepository.findByEstudianteIdAndStatus(estudiante.getId(), PlanStatus.ACTIVO)
                     .ifPresent(activePlan -> procesarPrimerRecordatorio(estudiante, activePlan, today));
         }
@@ -60,22 +74,8 @@ public class RecordatorioService {
         }
 
         List<String> nombres = pendingTasks.stream().map(HabitTask::getName).collect(Collectors.toList());
-
-        // 1) Correo con la lista de actividades pendientes
         emailService.sendTaskReminderEmail(estudiante.getEmail(), estudiante.getName(), nombres, false);
-
-        // 2) Notificación en la campana (solo en la app, el correo ya salió arriba)
-        try {
-            notificationService.createAndSend(
-                    estudiante.getId(),
-                    NotificationType.RECORDATORIO_CHECKIN,
-                    NotificationChannel.IN_APP,
-                    "Tienes actividades pendientes",
-                    "Hoy te falta informar: " + String.join(", ", nombres) + ".");
-        } catch (Exception e) {
-            log.error("No se pudo crear la notificación del recordatorio para {}: {}",
-                    estudiante.getEmail(), e.getMessage());
-        }
+        avisarEnCampana(estudiante, nombres, false);
 
         for (HabitTask task : pendingTasks) {
             if (recordatorioTareaRepository.findByHabitTaskIdAndFecha(task.getId(), today).isEmpty()) {
@@ -118,6 +118,7 @@ public class RecordatorioService {
             List<String> nombres = aunPendientes.stream()
                     .map(r -> r.getHabitTask().getName()).collect(Collectors.toList());
             emailService.sendTaskReminderEmail(estudiante.getEmail(), estudiante.getName(), nombres, true);
+            avisarEnCampana(estudiante, nombres, true);
 
             for (RecordatorioTarea r : aunPendientes) {
                 r.setRecordatoriosEnviados(2);
@@ -126,6 +127,24 @@ public class RecordatorioService {
             }
             log.info("Recordatorio de seguimiento enviado a {} ({} tareas)", estudiante.getEmail(),
                     aunPendientes.size());
+        }
+    }
+
+    // Deja el aviso en la campana además del correo. Si falla, no tumba el envío
+    private void avisarEnCampana(Estudiante estudiante, List<String> nombres, boolean seguimiento) {
+        try {
+            String titulo = seguimiento
+                    ? "Aún te faltan actividades por reportar"
+                    : "Tienes actividades por reportar";
+            String mensaje = "Pendientes de hoy: " + String.join(", ", nombres) + ".";
+            notificationService.createAndSend(
+                    estudiante.getId(),
+                    NotificationType.RECORDATORIO_CHECKIN,
+                    NotificationChannel.IN_APP,
+                    titulo,
+                    mensaje);
+        } catch (Exception e) {
+            log.error("No se pudo crear la notificación para {}: {}", estudiante.getEmail(), e.getMessage());
         }
     }
 
