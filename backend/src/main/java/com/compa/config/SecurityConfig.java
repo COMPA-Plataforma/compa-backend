@@ -34,6 +34,12 @@ public class SecurityConfig {
                         // El estudiante activa su cuenta desde el link del email sin estar autenticado
                         .requestMatchers(HttpMethod.POST, "/api/estudiantes/activate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/notifications/actions/*/complete-task").permitAll()
+                        // Gestion de usuarios y roles: solo el administrador
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMINISTRADOR")
+                        // Informes agregados: solo el coordinador de Bienestar
+                        .requestMatchers("/api/coordinador/**")
+                        .hasRole("COORDINADOR_BIENESTAR")
                         // La atención (anamnesis) es solo para psicoorientadores; el estudiante no accede
                         .requestMatchers("/api/estudiantes/*/atencion/**", "/api/atenciones/**")
                         .hasRole("ORIENTADOR")
@@ -60,7 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/estudiantes/*/habit-plans/**")
                         .hasRole("ORIENTADOR")
                         // Estrategias del plan: el psicoorientador ve todas, el estudiante solo las vigentes de su plan activo
-                        .requestMatchers("/api/estudiantes/*/estrategias/**")   
+                        .requestMatchers("/api/estudiantes/*/estrategias/**")
                         .hasRole("ORIENTADOR")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -2,7 +2,6 @@ package com.compa.repository;
 
 import com.compa.model.AdherenceSnapshot;
 import com.compa.model.Estudiante;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -16,4 +15,7 @@ public interface AdherenceSnapshotRepository extends JpaRepository<AdherenceSnap
 
     List<AdherenceSnapshot> findByEstudianteOrderBySnapshotDateDesc(Estudiante estudiante);
 
+    // Foto de adherencia mas reciente de un estudiante hasta una fecha (para el informe agregado)
+    Optional<AdherenceSnapshot> findFirstByEstudiante_IdAndSnapshotDateLessThanEqualOrderBySnapshotDateDesc(
+            Long estudianteId, LocalDate fecha);
 }
